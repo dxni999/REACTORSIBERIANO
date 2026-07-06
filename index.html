@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel de Control — Central Nuclear Siberiana</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="consola" id="consola">
+  <div class="remache tl"></div>
+  <div class="remache tr"></div>
+  <div class="remache bl"></div>
+  <div class="remache br"></div>
+
+  <!-- ============ FASCIA SUPERIOR ============ -->
+  <header class="fascia">
+    <div class="titulo-grupo">
+      <h1>REACTOR RBMK-04 — ESTACIÓN NORILSK-7</h1>
+      <p>Protocolo de emergencia · Simulacro de contención</p>
+    </div>
+    <div class="strobes" aria-hidden="true">
+      <span class="lampara"></span>
+      <span class="lampara"></span>
+    </div>
+    <div class="timer-box crt-screen">
+      <div class="etiqueta">Cuenta regresiva</div>
+      <div id="timerDisplay">30s</div>
+    </div>
+  </header>
+
+  <div class="franja-riesgo" aria-hidden="true"></div>
+
+  <!-- ============ CUERPO ============ -->
+  <main class="cuerpo">
+
+    <!-- ---------- COLUMNA IZQUIERDA: INSTRUMENTOS ---------- -->
+    <section aria-labelledby="tituloInstrumentos">
+      <p class="panel-titulo" id="tituloInstrumentos">Instrumentación</p>
+
+      <div class="instrumento crt-screen">
+        <h3>Temperatura del refrigerante</h3>
+        <svg class="gauge-svg" viewBox="0 0 220 130" role="img" aria-hidden="true">
+          <path d="M 15 120 A 95 95 0 0 1 205 120" fill="none" stroke="#1c241f" stroke-width="14" stroke-linecap="round"/>
+          <path d="M 15 120 A 95 95 0 0 1 92 27"  fill="none" stroke="#1e5c33" stroke-width="14" stroke-linecap="round"/>
+          <path d="M 92 27 A 95 95 0 0 1 148 30"  fill="none" stroke="#8a6a12" stroke-width="14" stroke-linecap="round"/>
+          <path d="M 148 30 A 95 95 0 0 1 205 120" fill="none" stroke="#7a1f1f" stroke-width="14" stroke-linecap="round"/>
+          <g id="agujaGauge" transform="rotate(0 110 120)">
+            <line x1="110" y1="120" x2="110" y2="38" stroke="#e8f4ee" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="110" cy="120" r="7" fill="#e8f4ee"/>
+          </g>
+        </svg>
+        <p class="lectura" id="tempDisplay">380°C</p>
+      </div>
+
+      <div class="instrumento crt-screen">
+        <h3>Nivel de agua de refrigeración</h3>
+        <div class="tanque-contenedor" id="tanqueContenedor">
+          <div class="tanque-shell">
+            <div class="tanque-relleno" id="tanqueRelleno" style="height:50%">
+              <span class="burbuja" style="left:10px; animation-delay:0s"></span>
+              <span class="burbuja" style="left:30px; animation-delay:.5s"></span>
+              <span class="burbuja" style="left:50px; animation-delay:1s"></span>
+            </div>
+          </div>
+        </div>
+        <p class="lectura" id="aguaDisplay">50%</p>
+      </div>
+
+      <div class="instrumento crt-screen">
+        <h3>Energía generada</h3>
+        <div class="barra-energia" id="barraEnergia" aria-hidden="true"></div>
+        <p class="lectura" id="energiaDisplay">800 MWe</p>
+      </div>
+    </section>
+
+    <!-- ---------- COLUMNA DERECHA: CONTROLES ---------- -->
+    <section aria-labelledby="tituloSecuencia">
+      <p class="panel-titulo" id="tituloSecuencia">Secuencia obligatoria de contención</p>
+
+      <div class="secuencia">
+        <div class="paso">
+          <span class="numero">1</span>
+          <span class="led" id="ledPaso1"></span>
+          <button id="btnPaso1" onclick="intentarPaso(1)">Detener turbinas</button>
+        </div>
+        <div class="paso">
+          <span class="numero">2</span>
+          <span class="led" id="ledPaso2"></span>
+          <button id="btnPaso2" onclick="intentarPaso(2)">Ventilar radiación</button>
+        </div>
+        <div class="paso">
+          <span class="numero">3</span>
+          <span class="led" id="ledPaso3"></span>
+          <button id="btnPaso3" disabled title="Se completa usando los controles de agua">Evacuar / ingresar H₂O</button>
+        </div>
+        <div class="paso">
+          <span class="numero">4</span>
+          <span class="led" id="ledPaso4"></span>
+          <button id="btnPaso4" onclick="intentarPaso(4)">Apagar el reactor</button>
+        </div>
+      </div>
+
+      <div class="agua-controles">
+        <button class="palanca" onclick="gestionarAgua('desfogar')">
+          <span class="icono" aria-hidden="true">▽</span>Desfogar agua
+        </button>
+        <button class="palanca" onclick="gestionarAgua('ingresar')">
+          <span class="icono" aria-hidden="true">△</span>Ingresar agua
+        </button>
+      </div>
+
+      <div class="emergencia">
+        <p class="emergencia-etiqueta">Paso 5 · Parada de emergencia</p>
+        <div class="emergencia-assembly bloqueada" id="emergenciaAssembly">
+          <button class="btn-mushroom" id="btnEmergencia" onclick="intentarBotonMushroom()" aria-label="Botón de emergencia" disabled>STOP</button>
+          <button class="tapa" onclick="intentarTapaEmergencia()" aria-label="Retirar tapa de seguridad">
+            <span>LEVANTAR TAPA</span>
+          </button>
+        </div>
+      </div>
+      
+      <!-- NUEVO BOTÓN DE REINICIO MANUAL -->
+      <button id="btnReiniciarManual" class="boton-accion hidden" onclick="iniciarSimulacion()" style="width: 100%; margin-top: 20px;">
+        ↻ Reiniciar simulacro
+      </button>
+    </section>
+
+    <!-- ---------- TELEMETRÍA (datos de usabilidad) ---------- -->
+    <section class="panel-telemetria crt-screen" aria-labelledby="tituloTelemetria">
+      <div class="telemetria-header">
+        <h3 id="tituloTelemetria">Telemetría del simulacro</h3>
+        <span class="contador">Errores: <span id="erroresDisplay">0</span></span>
+        <button onclick="exportarRegistro()">Copiar registro</button>
+      </div>
+      <div id="logRegistro" role="log" aria-live="polite"></div>
+
+      <!-- Se muestra automáticamente al terminar (victoria o explosión) -->
+      <div id="telemetria" class="resultado-final hidden" aria-live="polite">
+        <h4>Resultados del experimento (Test A/B)</h4>
+        <p>Estado final: <span id="resultadoFinalDisplay">-</span></p>
+        <p>Tiempo empleado: <span id="tiempoFinalDisplay">-</span> s</p>
+        <p>Clics erróneos: <span id="erroresFinalDisplay">-</span></p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============ ALERTAS FLOTANTES ============ -->
+  <div id="alertaVictoria" role="alert" aria-live="polite">✔ SISTEMA SEGURO<span>Central estabilizada. Datos en telemetría.</span></div>
+  <div id="alertaDenegada" role="alert" aria-live="assertive"></div>
+  <div id="toast" role="status"></div>
+
+  <!-- ============ OVERLAY: INICIO ============ -->
+  <div class="overlay" id="overlayInicio">
+    <div class="tarjeta-overlay">
+      <h2>☢ SIMULACRO DE CONTENCIÓN</h2>
+      <p>El personal de limpieza debe estabilizar el reactor en <strong>30 segundos</strong> siguiendo el protocolo en el orden exacto:</p>
+      <ul>
+        <li>1. Detener turbinas</li>
+        <li>2. Ventilar radiación</li>
+        <li>3. Evacuar / ingresar agua (con las palancas)</li>
+        <li>4. Apagar el reactor</li>
+        <li>5. Levantar la tapa y presionar el botón de emergencia</li>
+      </ul>
+      <p>Si la temperatura supera <strong>400°C</strong> sonará la alarma de crisis. Un paso fuera de orden cuenta como error.</p>
+      <button class="boton-accion" onclick="iniciarSimulacion()">▶ Tocar para iniciar</button>
+    </div>
+  </div>
+
+  <!-- ============ OVERLAY: DERROTA ============ -->
+  <div class="overlay hidden" id="overlayDerrota">
+    <div class="tarjeta-overlay">
+      <h2>☢ EXPLOSIÓN — MUTACIÓN ZOMBIE ACTIVADA</h2>
+      <p>El tiempo se agotó antes de completar la secuencia. La central entró en fusión.</p>
+      <div class="stats-grid">
+        <div>Paso alcanzado<strong id="statDerrotaPaso">0/5</strong></div>
+        <div>Errores<strong id="statDerrotaErrores">0</strong></div>
+      </div>
+      <button class="boton-accion peligro" onclick="iniciarSimulacion()">↻ Reintentar</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
