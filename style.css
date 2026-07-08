@@ -6,13 +6,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Oswald:wght@400;500;600;700&family=VT323&display=swap');
 
 :root {
-  /* --- Paleta (bunker de hormigón + fósforo de CRT) --- */
-  --void: #06090a;         /* fondo exterior, casi negro */
-  --hull: #121815;         /* plancha de acero del panel */
-  --chrome: #7c9187;       /* metal / etiquetas grabadas */
-  --phosphor: #39ff6a;     /* verde fósforo — normal / éxito */
-  --amber: #ffb200;        /* ámbar — advertencia */
-  --klaxon: #ff3131;       /* rojo — crítico / peligro */
+  --void: #06090a;
+  --hull: #121815;
+  --chrome: #7c9187;
+  --phosphor: #39ff6a;
+  --amber: #ffb200;
+  --klaxon: #ff3131;
 
   --font-display: 'Black Ops One', Impact, 'Arial Narrow', sans-serif;
   --font-label: 'Oswald', 'Arial Narrow', sans-serif;
@@ -43,9 +42,6 @@ button {
   outline-offset: 3px;
 }
 
-/* ============================================================
-   CONSOLA PRINCIPAL (carcasa metálica remachada)
-   ============================================================ */
 .consola {
   position: relative;
   width: 100%;
@@ -61,7 +57,6 @@ button {
     inset 0 0 40px rgba(0,0,0,.5);
 }
 
-/* remaches decorativos en las esquinas */
 .consola::before, .consola::after,
 .fascia .remache-l, .fascia .remache-r { content: none; }
 
@@ -78,16 +73,12 @@ button {
 .remache.bl { bottom: 8px; left: 8px; }
 .remache.br { bottom: 8px; right: 8px; }
 
-/* Pulso de emergencia global (se activa cuando temp >= crítica) */
-.consola.critico {
-  animation: pulso-critico 1.1s infinite;
-}
+.consola.critico { animation: pulso-critico 1.1s infinite; }
 @keyframes pulso-critico {
   0%, 100% { box-shadow: 0 0 0 6px #0a0d0b, 0 25px 60px rgba(0,0,0,.7), inset 0 0 40px rgba(0,0,0,.5), inset 0 0 60px rgba(255,49,49,0); }
   50%      { box-shadow: 0 0 0 6px #0a0d0b, 0 25px 60px rgba(0,0,0,.7), inset 0 0 40px rgba(0,0,0,.5), inset 0 0 90px rgba(255,49,49,.55); }
 }
 
-/* Sacudida al denegar una acción */
 .consola.sacudida { animation: sacudir .4s; }
 @keyframes sacudir {
   0%, 100% { transform: translate(0,0); }
@@ -97,9 +88,6 @@ button {
   80%      { transform: translate(3px, 1px); }
 }
 
-/* ============================================================
-   FASCIA SUPERIOR (título + pilotos de alarma + reloj)
-   ============================================================ */
 .fascia {
   display: flex;
   align-items: center;
@@ -156,9 +144,6 @@ button {
 }
 .consola.critico #timerDisplay { color: var(--klaxon); text-shadow: 0 0 12px var(--klaxon); }
 
-/* ============================================================
-   PANTALLAS ESTILO CRT (usado por instrumentos y telemetría)
-   ============================================================ */
 .crt-screen {
   position: relative;
   background: #0a0f0c;
@@ -194,9 +179,6 @@ button {
   98% { opacity: 1; }
 }
 
-/* ============================================================
-   CUERPO: GRID DE DOS COLUMNAS
-   ============================================================ */
 .cuerpo {
   display: grid;
   grid-template-columns: 1.05fr .95fr;
@@ -221,7 +203,6 @@ button {
   background: #2a332d;
 }
 
-/* ---------- Instrumentos ---------- */
 .instrumento {
   padding: 12px;
   margin-bottom: 14px;
@@ -246,11 +227,9 @@ button {
   text-shadow: 0 0 10px var(--klaxon);
 }
 
-/* Gauge de temperatura */
 .gauge-svg { width: 100%; max-width: 210px; height: auto; }
 #agujaGauge { transform-origin: 110px 120px; transition: transform .25s ease-out; }
 
-/* Tanque de agua */
 .tanque-contenedor { display: flex; justify-content: center; }
 .tanque-shell {
   position: relative;
@@ -296,7 +275,6 @@ button {
   100% { transform: translateY(-95px) scale(1); opacity: 0; }
 }
 
-/* Barra de energía (medidor segmentado tipo VU) */
 .barra-energia {
   display: flex;
   gap: 3px;
@@ -316,7 +294,6 @@ button {
 .segmento.activo.alto { background: var(--amber); box-shadow: 0 0 5px var(--amber); }
 .segmento.activo.critico-seg { background: var(--klaxon); box-shadow: 0 0 6px var(--klaxon); }
 
-/* ---------- Secuencia de pasos ---------- */
 .secuencia { margin-bottom: 14px; }
 .paso {
   display: flex;
@@ -367,10 +344,9 @@ button {
 }
 .paso button.completado::after { content: '  ✓ COMPLETADO'; font-size: .7rem; opacity: .8; }
 
-/* ---------- Controles de agua ---------- */
 .agua-controles {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 10px;
   margin-bottom: 16px;
 }
@@ -393,7 +369,6 @@ button {
 }
 .palanca .icono { display: block; font-size: 1.2rem; margin-bottom: 2px; }
 
-/* ---------- Botón de emergencia con tapa de seguridad ---------- */
 .emergencia { text-align: center; }
 .emergencia-etiqueta {
   font-size: .72rem;
@@ -468,9 +443,6 @@ button {
 }
 .emergencia-assembly.shake { animation: sacudir .4s; }
 
-/* ============================================================
-   ALERTA DE DENEGACIÓN Y TOAST
-   ============================================================ */
 #alertaDenegada {
   position: fixed;
   top: 18px;
@@ -512,9 +484,6 @@ button {
 }
 #toast.visible { transform: translate(-50%, 0); opacity: 1; }
 
-/* ============================================================
-   TELEMETRÍA (registro del estudio de usabilidad)
-   ============================================================ */
 .panel-telemetria {
   grid-column: 1 / -1;
   padding: 12px 14px;
@@ -579,9 +548,6 @@ button {
 }
 #logRegistro div { text-shadow: 0 0 4px rgba(57,255,106,.4); }
 
-/* ============================================================
-   OVERLAYS (inicio / victoria / derrota)
-   ============================================================ */
 .overlay {
   position: absolute;
   inset: 0;
@@ -656,9 +622,6 @@ button {
 .boton-accion.peligro { border-color: var(--klaxon); background: rgba(255,49,49,.12); color: #ffbcbc; }
 .boton-accion.peligro:hover { background: rgba(255,49,49,.22); }
 
-/* ============================================================
-   UTILIDADES
-   ============================================================ */
 .hidden { display: none !important; }
 .franja-riesgo {
   height: 6px;
@@ -668,9 +631,6 @@ button {
   opacity: .5;
 }
 
-/* ============================================================
-   RESPONSIVE
-   ============================================================ */
 @media (max-width: 860px) {
   .cuerpo { grid-template-columns: 1fr; }
   .fascia { justify-content: center; text-align: center; }
@@ -681,7 +641,6 @@ button {
   .lectura { font-size: 1.6rem; }
 }
 
-/* Respeta la preferencia de reducir movimiento */
 @media (prefers-reduced-motion: reduce) {
   .consola.critico,
   .consola.critico .lampara,
@@ -693,9 +652,6 @@ button {
   }
 }
 
-/* ============================================================
-   NOTIFICACIÓN FLOTANTE DE VICTORIA (No intrusiva)
-   ============================================================ */
 #alertaVictoria {
   position: fixed;
   top: 30px;
@@ -714,7 +670,7 @@ button {
   z-index: 200;
   opacity: 0;
   transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.5s ease;
-  pointer-events: none; /* Para que no bloquee clics accidentales */
+  pointer-events: none;
 }
 #alertaVictoria.visible {
   transform: translate(-50%, 0);
