@@ -33,6 +33,9 @@ function crearEstadoInicial() {
     tiempoRestante: TIEMPO_INICIAL,
     paso: 0,
     temperatura: TEMP_INICIAL,
+    temperaturaAgua: 130,      // NUEVA VARIABLE: Temperatura independiente del agua
+    alertaAguaEmitida: false,  // NUEVA VARIABLE: Evita spam de la alerta del agua
+    reactorEncendido: true, 
     agua: AGUA_INICIAL,
     energia: Math.round(TEMP_INICIAL * 2.1),
     errores: 0,
@@ -45,7 +48,7 @@ function crearEstadoInicial() {
 
 function clamp(v, min, max) { return Math.min(max, Math.max(min, v)); }
 
-// --- 2. SONIDO (Web Audio API — sin archivos externos, funciona sin internet) ---
+// --- 2. SONIDO ---
 function obtenerAudioCtx() {
   if (!audioCtx) {
     const AC = window.AudioContext || window.webkitAudioContext;
@@ -73,7 +76,7 @@ function tono(frecuencia, duracion, tipo, volumen, retardo) {
     gain.gain.exponentialRampToValueAtTime(0.001, t0 + duracion);
     osc.start(t0);
     osc.stop(t0 + duracion + 0.02);
-  } catch (e) { /* Audio no disponible: continuar en silencio */ }
+  } catch (e) { }
 }
 
 const sonido = {
@@ -92,14 +95,13 @@ function iniciarSimulacion() {
   estado.activo = true;
   estado.inicioTS = Date.now();
 
-  obtenerAudioCtx(); // Desbloquea el audio con el gesto del usuario
+  obtenerAudioCtx();
 
   document.getElementById('overlayInicio').classList.add('hidden');
   document.getElementById('overlayDerrota').classList.add('hidden');
   document.getElementById('telemetria').classList.add('hidden');
   document.getElementById('consola').classList.remove('critico');
   
-  // Ocultar elementos de victoria
   document.getElementById('alertaVictoria').classList.remove('visible');
   document.getElementById('btnReiniciarManual').classList.add('hidden');
 
@@ -114,13 +116,18 @@ function cicloDelReactor() {
   if (!estado.activo) return;
   estado.tiempoRestante--;
 
-  // Mientras no se hayan detenido turbinas + ventilado + refrigerado, la temperatura sube sola
-  if (estado.paso < 3) {
+  // La temperatura sube si el reactor está encendido y la secuencia no está avanzada
+  if (estado.reactorEncendido && estado.paso < 3) {
     estado.temperatura += Math.floor(Math.random() * 10) + 5;
+    // El agua sube rápido para que el jugador se vea obligado a actuar antes de que acabe el tiempo
+    estado.temperaturaAgua += Math.floor(Math.random() * 20) + 20; 
+  } else {
+    // Si se apaga o completa la secuencia, se enfrían ambos
+    estado.temperatura = Math.max(20, estado.temperatura - 5);
+    estado.temperaturaAgua = Math.max(20, estado.temperaturaAgua - 15);
   }
 
-  // La energía depende de la temperatura, salvo que el reactor ya esté apagado (paso 4)
-  estado.energia = estado.paso >= 4 ? 0 : Math.round(estado.temperatura * 2.1);
+  estado.energia = (estado.paso >= 4 || !estado.reactorEncendido) ? 0 : Math.round(estado.temperatura * 2.1);
 
   gestionarAlarmaCritica();
   render();
@@ -128,6 +135,15 @@ function cicloDelReactor() {
   if (estado.tiempoRestante <= 0) {
     derrota();
   }
+}
+
+// --- APAGAR/PRENDER REACTOR ---
+function toggleReactor() {
+  if (!estado.activo) return;
+  estado.reactorEncendido = !estado.reactorEncendido;
+  sonido.click();
+  registrar('Reactor ' + (estado.reactorEncendido ? 'ENCENDIDO' : 'APAGADO') + ' manualmente.');
+  render();
 }
 
 // --- 4. CONTROL DE LA SECUENCIA OBLIGATORIA ---
@@ -141,6 +157,7 @@ function intentarPaso(numero) {
     sonido.exito();
 
     if (numero === 4) {
+      estado.reactorEncendido = false; // El paso 4 apaga el reactor
       document.getElementById('emergenciaAssembly').classList.remove('bloqueada');
       document.getElementById('btnEmergencia').disabled = false;
     }
@@ -166,12 +183,9 @@ function intentarTapaEmergencia() {
 }
 
 function intentarBotonMushroom() {
-  // El atributo disabled del propio botón (#btnEmergencia) ya impide el clic
-  // hasta que el Paso 4 se complete; esta función solo se alcanza cuando
-  // el navegador permitió el evento porque disabled === false.
   if (!estado.activo) return;
   const assembly = document.getElementById('emergenciaAssembly');
-  if (!assembly.classList.contains('abierta')) return; // capa extra: la tapa debe estar abierta
+  if (!assembly.classList.contains('abierta')) return;
   intentarPaso(5);
   if (estado.paso === 5) victoria();
 }
@@ -189,9 +203,6 @@ function denegarAccion(numeroIntentado) {
 }
 
 // --- 5. CONTROLES DE AGUA ---
-// Independientes de la secuencia 1-5: el usuario puede usarlos en cualquier
-// momento de la simulación para alterar nivelAgua y temperatura. Además,
-// usarlos mientras se está en el paso 2 es lo que activa el paso 3.
 function gestionarAgua(accion) {
   if (!estado.activo) return;
 
@@ -199,6 +210,8 @@ function gestionarAgua(accion) {
     estado.agua = Math.min(100, estado.agua + 10);
     estado.aguaIngresada = true;
     estado.temperatura = Math.max(0, estado.temperatura - 15);
+    // Ingresar agua fría disminuye drásticamente la temperatura del agua general
+    estado.temperaturaAgua = Math.max(20, estado.temperaturaAgua - 50); 
   } else if (accion === 'desfogar') {
     estado.agua = Math.max(0, estado.agua - 10);
     estado.aguaEvacuada = true;
@@ -231,13 +244,9 @@ function victoria() {
   const transcurrido = TIEMPO_INICIAL - estado.tiempoRestante;
   registrar('ÉXITO: central estabilizada en ' + transcurrido + 's con ' + estado.errores + ' error(es).');
 
-  // Mostrar la alerta flotante (no intrusiva)
   document.getElementById('alertaVictoria').classList.add('visible');
-  
-  // Mostrar el botón para que el usuario decida cuándo reiniciar
   document.getElementById('btnReiniciarManual').classList.remove('hidden');
 
-  // Imprimir los datos en el panel de telemetría inferior
   mostrarTelemetriaFinal('VICTORIA — Central estabilizada con éxito', transcurrido, estado.errores);
 }
 
@@ -257,8 +266,6 @@ function derrota() {
   mostrarTelemetriaFinal('EXPLOSIÓN — Fusión del núcleo (tiempo agotado)', TIEMPO_INICIAL, estado.errores);
 }
 
-// Panel #telemetria: se revela automáticamente al terminar la simulación
-// (por victoria o por explosión) con los 3 datos cuantitativos del experimento.
 function mostrarTelemetriaFinal(estadoFinal, tiempoEmpleado, clicsErroneos) {
   document.getElementById('resultadoFinalDisplay').innerText = estadoFinal;
   document.getElementById('tiempoFinalDisplay').innerText = tiempoEmpleado;
@@ -266,7 +273,7 @@ function mostrarTelemetriaFinal(estadoFinal, tiempoEmpleado, clicsErroneos) {
   document.getElementById('telemetria').classList.remove('hidden');
 }
 
-// --- 7. ALARMA VISUAL Y AUDITIVA CRÍTICA (temp >= 400°C) ---
+// --- 7. ALARMA VISUAL Y AUDITIVA ---
 function gestionarAlarmaCritica() {
   const consola = document.getElementById('consola');
   if (estado.temperatura >= TEMP_CRITICA) {
@@ -290,29 +297,47 @@ function detenerAlarma() {
 
 // --- 8. RENDERIZADO DE LA INTERFAZ ---
 function render() {
-  // Temporizador
   const t = Math.max(0, estado.tiempoRestante);
   document.getElementById('timerDisplay').innerText = String(t).padStart(2, '0') + 's';
 
-  // Temperatura + aguja del gauge
   document.getElementById('tempDisplay').innerText = estado.temperatura + '°C';
   document.getElementById('tempDisplay').classList.toggle('valor-critico', estado.temperatura >= TEMP_CRITICA);
+  
   const frac = clamp((estado.temperatura - TEMP_MIN_ESCALA) / (TEMP_MAX_ESCALA - TEMP_MIN_ESCALA), 0, 1);
   const angulo = -90 + frac * 180;
   const aguja = document.getElementById('agujaGauge');
   if (aguja) aguja.setAttribute('transform', 'rotate(' + angulo.toFixed(1) + ' 110 120)');
 
-  // Agua
+  // Render Temperatura del Agua (Independiente)
+  document.getElementById('tempAguaDisplay').innerText = estado.temperaturaAgua + '°C';
+  
+  // ALERTA DE AGUA > 400°C 
+  if (estado.temperaturaAgua >= 400) {
+    document.getElementById('tempAguaDisplay').classList.add('valor-critico');
+    // Emite la alerta visual roja solo si no se ha emitido en este pico de calor
+    if (estado.activo && !estado.alertaAguaEmitida) {
+      mostrarAlertaDenegada("¡ALERTA! El agua refrigerante superó los 400°C");
+      sonido.error();
+      registrar('ALERTA: Temperatura del agua crítica (>400°C).');
+      estado.alertaAguaEmitida = true;
+    }
+  } else {
+    // Si la bajan de 400, reseteamos las clases y la bandera de alerta
+    document.getElementById('tempAguaDisplay').classList.remove('valor-critico');
+    estado.alertaAguaEmitida = false;
+  }
+
+  // Botón Encendido/Apagado
+  document.getElementById('textoToggleReactor').innerText = estado.reactorEncendido ? 'Apagar Reactor' : 'Prender Reactor';
+
   document.getElementById('aguaDisplay').innerText = estado.agua + '%';
   const relleno = document.getElementById('tanqueRelleno');
   if (relleno) relleno.style.height = estado.agua + '%';
-  document.getElementById('tanqueContenedor').classList.toggle('hirviendo', estado.temperatura >= TEMP_CRITICA);
+  document.getElementById('tanqueContenedor').classList.toggle('hirviendo', estado.temperatura >= TEMP_CRITICA || estado.temperaturaAgua >= 400);
 
-  // Energía
   document.getElementById('energiaDisplay').innerText = estado.energia + ' MWe';
   renderSegmentosEnergia();
 
-  // Errores y registro
   document.getElementById('erroresDisplay').innerText = estado.errores;
   renderRegistro();
 }
@@ -328,7 +353,7 @@ function renderSegmentosEnergia() {
   });
 }
 
-// --- 9. REGISTRO DE TELEMETRÍA (datos crudos para el reporte de usabilidad) ---
+// --- 9. REGISTRO DE TELEMETRÍA ---
 function registrar(texto) {
   const t = estado.inicioTS ? ((Date.now() - estado.inicioTS) / 1000).toFixed(1) : '0.0';
   estado.registro.push('[T+' + t + 's] ' + texto);
@@ -387,8 +412,6 @@ function marcarBotonCompletado(numero) {
 }
 
 function resetearBotones() {
-  // Pasos 1, 2 y 4 se activan con clic directo; el paso 3 no tiene botón propio
-  // (se completa usando las palancas de agua), por eso queda siempre deshabilitado.
   [1, 2, 4].forEach(function (i) {
     const b = document.getElementById('btnPaso' + i);
     b.disabled = false;
@@ -403,10 +426,10 @@ function resetearBotones() {
   const assembly = document.getElementById('emergenciaAssembly');
   assembly.classList.add('bloqueada');
   assembly.classList.remove('abierta', 'shake');
-  document.getElementById('btnEmergencia').disabled = true; // bloqueo estricto por defecto
+  document.getElementById('btnEmergencia').disabled = true;
 }
 
-// --- 12. INICIALIZACIÓN (genera la barra de energía y deja la consola lista) ---
+// --- 12. INICIALIZACIÓN ---
 document.addEventListener('DOMContentLoaded', function () {
   const contenedor = document.getElementById('barraEnergia');
   for (let i = 0; i < SEGMENTOS_BARRA; i++) {
