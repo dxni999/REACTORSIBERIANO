@@ -14,7 +14,6 @@
   <div class="remache bl"></div>
   <div class="remache br"></div>
 
-  <!-- ============ FASCIA SUPERIOR ============ -->
   <header class="fascia">
     <div class="titulo-grupo">
       <h1>REACTOR RBMK-04 — ESTACIÓN NORILSK-7</h1>
@@ -32,15 +31,13 @@
 
   <div class="franja-riesgo" aria-hidden="true"></div>
 
-  <!-- ============ CUERPO ============ -->
   <main class="cuerpo">
 
-    <!-- ---------- COLUMNA IZQUIERDA: INSTRUMENTOS ---------- -->
     <section aria-labelledby="tituloInstrumentos">
       <p class="panel-titulo" id="tituloInstrumentos">Instrumentación</p>
 
       <div class="instrumento crt-screen">
-        <h3>Temperatura del refrigerante</h3>
+        <h3>Temperatura del reactor</h3>
         <svg class="gauge-svg" viewBox="0 0 220 130" role="img" aria-hidden="true">
           <path d="M 15 120 A 95 95 0 0 1 205 120" fill="none" stroke="#1c241f" stroke-width="14" stroke-linecap="round"/>
           <path d="M 15 120 A 95 95 0 0 1 92 27"  fill="none" stroke="#1e5c33" stroke-width="14" stroke-linecap="round"/>
@@ -55,7 +52,12 @@
       </div>
 
       <div class="instrumento crt-screen">
-        <h3>Nivel de agua de refrigeración</h3>
+        <h3>Temperatura del agua</h3>
+        <p class="lectura" id="tempAguaDisplay">130°C</p>
+      </div>
+
+      <div class="instrumento crt-screen">
+        <h3>Nivel de agua</h3>
         <div class="tanque-contenedor" id="tanqueContenedor">
           <div class="tanque-shell">
             <div class="tanque-relleno" id="tanqueRelleno" style="height:50%">
@@ -75,7 +77,6 @@
       </div>
     </section>
 
-    <!-- ---------- COLUMNA DERECHA: CONTROLES ---------- -->
     <section aria-labelledby="tituloSecuencia">
       <p class="panel-titulo" id="tituloSecuencia">Secuencia obligatoria de contención</p>
 
@@ -103,6 +104,9 @@
       </div>
 
       <div class="agua-controles">
+        <button class="palanca" onclick="toggleReactor()">
+          <span class="icono" aria-hidden="true">⚡</span><span id="textoToggleReactor">Apagar Reactor</span>
+        </button>
         <button class="palanca" onclick="gestionarAgua('desfogar')">
           <span class="icono" aria-hidden="true">▽</span>Desfogar agua
         </button>
@@ -121,13 +125,11 @@
         </div>
       </div>
       
-      <!-- NUEVO BOTÓN DE REINICIO MANUAL -->
       <button id="btnReiniciarManual" class="boton-accion hidden" onclick="iniciarSimulacion()" style="width: 100%; margin-top: 20px;">
         ↻ Reiniciar simulacro
       </button>
     </section>
 
-    <!-- ---------- TELEMETRÍA (datos de usabilidad) ---------- -->
     <section class="panel-telemetria crt-screen" aria-labelledby="tituloTelemetria">
       <div class="telemetria-header">
         <h3 id="tituloTelemetria">Telemetría del simulacro</h3>
@@ -136,9 +138,8 @@
       </div>
       <div id="logRegistro" role="log" aria-live="polite"></div>
 
-      <!-- Se muestra automáticamente al terminar (victoria o explosión) -->
       <div id="telemetria" class="resultado-final hidden" aria-live="polite">
-        <h4>Resultados del experimento (Test A/B)</h4>
+        <h4>Resultados del experimento</h4>
         <p>Estado final: <span id="resultadoFinalDisplay">-</span></p>
         <p>Tiempo empleado: <span id="tiempoFinalDisplay">-</span> s</p>
         <p>Clics erróneos: <span id="erroresFinalDisplay">-</span></p>
@@ -147,12 +148,10 @@
 
   </main>
 
-  <!-- ============ ALERTAS FLOTANTES ============ -->
   <div id="alertaVictoria" role="alert" aria-live="polite">✔ SISTEMA SEGURO<span>Central estabilizada. Datos en telemetría.</span></div>
   <div id="alertaDenegada" role="alert" aria-live="assertive"></div>
   <div id="toast" role="status"></div>
 
-  <!-- ============ OVERLAY: INICIO ============ -->
   <div class="overlay" id="overlayInicio">
     <div class="tarjeta-overlay">
       <h2>☢ SIMULACRO DE CONTENCIÓN</h2>
@@ -164,12 +163,11 @@
         <li>4. Apagar el reactor</li>
         <li>5. Levantar la tapa y presionar el botón de emergencia</li>
       </ul>
-      <p>Si la temperatura supera <strong>400°C</strong> sonará la alarma de crisis. Un paso fuera de orden cuenta como error.</p>
+      <p>Si la temperatura del reactor o del agua supera <strong>400°C</strong> sonarán alarmas. Un paso fuera de orden cuenta como error.</p>
       <button class="boton-accion" onclick="iniciarSimulacion()">▶ Tocar para iniciar</button>
     </div>
   </div>
 
-  <!-- ============ OVERLAY: DERROTA ============ -->
   <div class="overlay hidden" id="overlayDerrota">
     <div class="tarjeta-overlay">
       <h2>☢ EXPLOSIÓN — MUTACIÓN ZOMBIE ACTIVADA</h2>
