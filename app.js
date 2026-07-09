@@ -292,7 +292,6 @@ function render() {
   
   if (estado.temperaturaAgua >= 400) {
     document.getElementById('tempAguaDisplay').classList.add('valor-critico');
-    // Emite la alerta visual roja solo si no se ha emitido en este pico de calor
     if (estado.activo && !estado.alertaAguaEmitida) {
       mostrarAlertaDenegada("¡ALERTA! El agua refrigerante superó los 400°C");
       sonido.error();
