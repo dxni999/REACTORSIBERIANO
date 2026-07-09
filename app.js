@@ -28,8 +28,8 @@ function crearEstadoInicial() {
     tiempoRestante: TIEMPO_INICIAL,
     paso: 0,
     temperatura: TEMP_INICIAL,
-    temperaturaAgua: 130,      // NUEVA VARIABLE: Temperatura independiente del agua
-    alertaAguaEmitida: false,  // NUEVA VARIABLE: Evita spam de la alerta del agua
+    temperaturaAgua: 130,      
+    alertaAguaEmitida: false,  
     reactorEncendido: true, 
     agua: AGUA_INICIAL,
     energia: Math.round(TEMP_INICIAL * 2.1),
@@ -193,7 +193,6 @@ function gestionarAgua(accion) {
     estado.agua = Math.min(100, estado.agua + 10);
     estado.aguaIngresada = true;
     estado.temperatura = Math.max(0, estado.temperatura - 15);
-    // Ingresar agua fría disminuye drásticamente la temperatura del agua general
     estado.temperaturaAgua = Math.max(20, estado.temperaturaAgua - 50); 
   } else if (accion === 'desfogar') {
     estado.agua = Math.max(0, estado.agua - 10);
@@ -301,7 +300,7 @@ function render() {
       estado.alertaAguaEmitida = true;
     }
   } else {
-    // Si la bajan de 400, reseteamos las clases y la bandera de alerta
+
     document.getElementById('tempAguaDisplay').classList.remove('valor-critico');
     estado.alertaAguaEmitida = false;
   }
