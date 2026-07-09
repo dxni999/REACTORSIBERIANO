@@ -137,15 +137,6 @@ function cicloDelReactor() {
   }
 }
 
-// --- APAGAR/PRENDER REACTOR ---
-function toggleReactor() {
-  if (!estado.activo) return;
-  estado.reactorEncendido = !estado.reactorEncendido;
-  sonido.click();
-  registrar('Reactor ' + (estado.reactorEncendido ? 'ENCENDIDO' : 'APAGADO') + ' manualmente.');
-  render();
-}
-
 // --- 4. CONTROL DE LA SECUENCIA OBLIGATORIA ---
 function intentarPaso(numero) {
   if (!estado.activo) return;
@@ -327,8 +318,6 @@ function render() {
     estado.alertaAguaEmitida = false;
   }
 
-  // Botón Encendido/Apagado
-  document.getElementById('textoToggleReactor').innerText = estado.reactorEncendido ? 'Apagar Reactor' : 'Prender Reactor';
 
   document.getElementById('aguaDisplay').innerText = estado.agua + '%';
   const relleno = document.getElementById('tanqueRelleno');
