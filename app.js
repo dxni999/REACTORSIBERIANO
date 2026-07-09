@@ -1,9 +1,4 @@
-// =============================================================
-// PANEL DE CONTROL — CENTRAL NUCLEAR SIBERIANA
-// Lógica del simulacro de emergencia (Feria de Ciencias — HCI)
-// =============================================================
 
-// --- 1. CONFIGURACIÓN Y ESTADO GLOBAL ---
 const TIEMPO_INICIAL = 30;
 const TEMP_INICIAL = 380;
 const TEMP_CRITICA = 400;
@@ -87,7 +82,6 @@ const sonido = {
   explosion: function () { tono(120, 0.5, 'sawtooth', 0.13, 0); tono(55, 0.9, 'sawtooth', 0.13, 0.15); }
 };
 
-// --- 3. CICLO PRINCIPAL DE SIMULACIÓN ---
 function iniciarSimulacion() {
   clearInterval(intervaloJuego);
   detenerAlarma();
@@ -116,13 +110,13 @@ function cicloDelReactor() {
   if (!estado.activo) return;
   estado.tiempoRestante--;
 
-  // La temperatura sube si el reactor está encendido y la secuencia no está avanzada
+
   if (estado.reactorEncendido && estado.paso < 3) {
     estado.temperatura += Math.floor(Math.random() * 10) + 5;
-    // El agua sube rápido para que el jugador se vea obligado a actuar antes de que acabe el tiempo
+    
     estado.temperaturaAgua += Math.floor(Math.random() * 20) + 20; 
   } else {
-    // Si se apaga o completa la secuencia, se enfrían ambos
+
     estado.temperatura = Math.max(20, estado.temperatura - 5);
     estado.temperaturaAgua = Math.max(20, estado.temperaturaAgua - 15);
   }
@@ -137,7 +131,6 @@ function cicloDelReactor() {
   }
 }
 
-// --- 4. CONTROL DE LA SECUENCIA OBLIGATORIA ---
 function intentarPaso(numero) {
   if (!estado.activo) return;
 
@@ -193,7 +186,6 @@ function denegarAccion(numeroIntentado) {
   render();
 }
 
-// --- 5. CONTROLES DE AGUA ---
 function gestionarAgua(accion) {
   if (!estado.activo) return;
 
@@ -222,7 +214,6 @@ function verificarActivacionPaso3() {
   }
 }
 
-// --- 6. RESOLUCIÓN DEL SIMULACRO ---
 function victoria() {
   estado.activo = false;
   clearInterval(intervaloJuego);
@@ -264,7 +255,6 @@ function mostrarTelemetriaFinal(estadoFinal, tiempoEmpleado, clicsErroneos) {
   document.getElementById('telemetria').classList.remove('hidden');
 }
 
-// --- 7. ALARMA VISUAL Y AUDITIVA ---
 function gestionarAlarmaCritica() {
   const consola = document.getElementById('consola');
   if (estado.temperatura >= TEMP_CRITICA) {
@@ -286,7 +276,6 @@ function detenerAlarma() {
   }
 }
 
-// --- 8. RENDERIZADO DE LA INTERFAZ ---
 function render() {
   const t = Math.max(0, estado.tiempoRestante);
   document.getElementById('timerDisplay').innerText = String(t).padStart(2, '0') + 's';
@@ -299,10 +288,9 @@ function render() {
   const aguja = document.getElementById('agujaGauge');
   if (aguja) aguja.setAttribute('transform', 'rotate(' + angulo.toFixed(1) + ' 110 120)');
 
-  // Render Temperatura del Agua (Independiente)
+ 
   document.getElementById('tempAguaDisplay').innerText = estado.temperaturaAgua + '°C';
   
-  // ALERTA DE AGUA > 400°C 
   if (estado.temperaturaAgua >= 400) {
     document.getElementById('tempAguaDisplay').classList.add('valor-critico');
     // Emite la alerta visual roja solo si no se ha emitido en este pico de calor
@@ -342,7 +330,6 @@ function renderSegmentosEnergia() {
   });
 }
 
-// --- 9. REGISTRO DE TELEMETRÍA ---
 function registrar(texto) {
   const t = estado.inicioTS ? ((Date.now() - estado.inicioTS) / 1000).toFixed(1) : '0.0';
   estado.registro.push('[T+' + t + 's] ' + texto);
@@ -369,7 +356,6 @@ function exportarRegistro() {
   }
 }
 
-// --- 10. ALERTAS EN PANTALLA ---
 function mostrarAlertaDenegada(mensaje) {
   const el = document.getElementById('alertaDenegada');
   el.innerText = mensaje;
@@ -389,7 +375,6 @@ function mostrarToast(mensaje) {
   setTimeout(function () { el.classList.remove('visible'); }, 2200);
 }
 
-// --- 11. UTILIDADES DE BOTONES ---
 function marcarBotonCompletado(numero) {
   const boton = document.getElementById('btnPaso' + numero);
   if (boton) {
@@ -418,7 +403,6 @@ function resetearBotones() {
   document.getElementById('btnEmergencia').disabled = true;
 }
 
-// --- 12. INICIALIZACIÓN ---
 document.addEventListener('DOMContentLoaded', function () {
   const contenedor = document.getElementById('barraEnergia');
   for (let i = 0; i < SEGMENTOS_BARRA; i++) {
